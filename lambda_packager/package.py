@@ -60,10 +60,13 @@ class LambdaAutoPackage:
         else:
             self.logger.warning("No dependency found, none will be packaged")
 
-        self._copy_source_files(
-            source_dir=self.project_directory,
-            target_dir=self.tmp_folder,
-        )
+        if self.config.deps_only:
+            self.logger.info("--deps-only flag present, src files will be ignored")
+        else:
+            self._copy_source_files(
+                source_dir=self.project_directory,
+                target_dir=self.tmp_folder,
+            )
 
         self._create_zip_file(
             self.tmp_folder, str(self.project_directory.joinpath("dist/lambda.zip"))

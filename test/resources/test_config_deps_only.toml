@@ -1,0 +1,2 @@
+[tool.lambda-packager]
+deps_only = true
