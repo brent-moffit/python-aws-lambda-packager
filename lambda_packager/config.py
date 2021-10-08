@@ -6,6 +6,7 @@ class Config:
         ignore_folders=None,
         without_hashes=False,
         deps_only=False,
+        layer=False,
     ):
         if ignore_folders is None:
             ignore_folders = []
@@ -18,3 +19,4 @@ class Config:
         self.ignore_hidden_files = ignore_hidden_files
         self.without_hashes = without_hashes
         self.deps_only = deps_only
+        self.layer = layer
