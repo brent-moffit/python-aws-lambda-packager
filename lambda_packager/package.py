@@ -36,6 +36,9 @@ class LambdaAutoPackage:
 
         self.tmp_folder = self._create_tmp_directory()
 
+        if self.config.layer:
+            self.src_folder = self._create_tmp_directory()
+
     def execute(self):
 
         if self.project_directory.joinpath("requirements.txt").is_file():
@@ -60,14 +63,34 @@ class LambdaAutoPackage:
         else:
             self.logger.warning("No dependency found, none will be packaged")
 
-        self._copy_source_files(
-            source_dir=self.project_directory,
-            target_dir=self.tmp_folder,
-        )
+        if self.config.deps_only:
+            self.logger.info("deps-only flag present, src files will be ignored")
+        else:
+            self._copy_source_files(
+                source_dir=self.project_directory,
+                target_dir=self.src_folder if self.config.layer else self.tmp_folder,
+            )
 
-        self._create_zip_file(
-            self.tmp_folder, str(self.project_directory.joinpath("dist/lambda.zip"))
-        )
+        if self.config.layer:
+            self.logger.info(
+                "layer flag is present, output will be split into lambda-src.zip and lambda-deps.zip"
+            )
+
+            if not self.config.deps_only:
+                self._create_zip_file(
+                    self.src_folder,
+                    str(self.project_directory.joinpath("dist/lambda-src.zip")),
+                )
+
+            self._create_zip_file(
+                self.tmp_folder,
+                str(self.project_directory.joinpath("dist/lambda-deps.zip")),
+            )
+
+        else:
+            self._create_zip_file(
+                self.tmp_folder, str(self.project_directory.joinpath("dist/lambda.zip"))
+            )
 
     @staticmethod
     def _create_tmp_directory():

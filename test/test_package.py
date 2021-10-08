@@ -75,6 +75,29 @@ def test_build_lambda_with_requirements_txt(caplog):
     assert "not_this_file" not in zip.namelist()
 
 
+def test_build_lambda_with_deps_only_requirements(caplog):
+    test_path = LambdaAutoPackage._create_tmp_directory()
+
+    test_file_helpers.with_requirements_file(test_path)
+    test_config = Path("test/resources/test_config_deps_only.toml")
+    test_file_helpers.with_config_file(test_path, test_config)
+
+    file1 = test_path.joinpath("test_file_1")
+    file1.write_text("test file 1")
+
+    with caplog.at_level(logging.INFO):
+        LambdaAutoPackage(project_directory=test_path).execute()
+
+    assert "deps-only flag present, src files will be ignored" in caplog.text
+
+    actual_zip = test_path.joinpath("dist/lambda.zip")
+    assert actual_zip.is_file()
+
+    zip = zipfile.ZipFile(actual_zip)
+    assert "test_file_1" not in zip.namelist()
+    assert "pip_install_test/__init__.py" in zip.namelist()
+
+
 def test_build_lambda_with_pyproject_toml(caplog):
     test_path = LambdaAutoPackage._create_tmp_directory()
     test_file_helpers.with_poetry_toml_file(test_path)
@@ -96,6 +119,57 @@ def test_build_lambda_with_pyproject_toml(caplog):
     zip = zipfile.ZipFile(actual_zip)
     assert "test_file_1.py" in zip.namelist()
     assert "not_this_file.md" not in zip.namelist()
+
+
+def test_build_lambda_deps_only_pyproject_toml(caplog):
+    test_path = LambdaAutoPackage._create_tmp_directory()
+    test_config = Path("test/resources/test_project_config_deps_only.toml")
+    test_file_helpers.with_config_file(test_path, test_config)
+
+    file1 = test_path.joinpath("test_file_1.py")
+    file1.write_text("test file 1")
+
+    with caplog.at_level(logging.INFO):
+        LambdaAutoPackage(project_directory=test_path).execute()
+
+    assert "deps-only flag present, src files will be ignored" in caplog.text
+
+    actual_zip = test_path.joinpath("dist/lambda.zip")
+    assert actual_zip.is_file()
+
+    zip = zipfile.ZipFile(actual_zip)
+    assert "test_file_1.py" not in zip.namelist()
+    assert "pip_install_test/__init__.py" in zip.namelist()
+
+
+def test_build_lambda_layer_pyproject_toml(caplog):
+    test_path = LambdaAutoPackage._create_tmp_directory()
+    test_config = Path("test/resources/test_project_config_layer.toml")
+    test_file_helpers.with_config_file(test_path, test_config)
+
+    file1 = test_path.joinpath("test_file_1.py")
+    file1.write_text("test file 1")
+
+    with caplog.at_level(logging.INFO):
+        LambdaAutoPackage(project_directory=test_path).execute()
+
+    assert (
+        "layer flag is present, output will be split into lambda-src.zip and lambda-deps.zip"
+        in caplog.text
+    )
+
+    actual_zip_src = test_path.joinpath("dist/lambda-src.zip")
+    actual_zip_deps = test_path.joinpath("dist/lambda-deps.zip")
+    assert actual_zip_src.is_file()
+    assert actual_zip_deps.is_file()
+
+    zip_src = zipfile.ZipFile(actual_zip_src)
+    assert "test_file_1.py" in zip_src.namelist()
+    assert "pip_install_test/__init__.py" not in zip_src.namelist()
+
+    zip_deps = zipfile.ZipFile(actual_zip_deps)
+    assert "test_file_1.py" not in zip_deps.namelist()
+    assert "pip_install_test/__init__.py" in zip_deps.namelist()
 
 
 def test_error_when_no_requirements_text_is_installed():
