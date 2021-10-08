@@ -77,11 +77,6 @@ class LambdaAutoPackage:
             )
 
             if not self.config.deps_only:
-                self._copy_source_files(
-                    source_dir=self.project_directory,
-                    target_dir=self.src_folder,
-                )
-
                 self._create_zip_file(
                     self.src_folder,
                     str(self.project_directory.joinpath("dist/lambda-src.zip")),
