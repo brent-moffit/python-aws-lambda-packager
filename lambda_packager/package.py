@@ -34,62 +34,59 @@ class LambdaAutoPackage:
                 self.project_directory.joinpath("pyproject.toml")
             )
 
-        self.tmp_folder = self._create_tmp_directory()
+        self.src_folder = self._create_tmp_directory()
 
-        if self.config.layer:
-            self.src_folder = self._create_tmp_directory()
+        if self.config.deps_layer:
+            self.deps_folder = self._create_tmp_directory().joinpath("python")
+            self.deps_folder.mkdir(parents=True)
 
     def execute(self):
+
+        deps_folder = self.deps_folder if self.config.deps_layer else self.src_folder
 
         if self.project_directory.joinpath("requirements.txt").is_file():
             self.logger.info("using requirements.txt file in project directory")
             requirements_file_path = self.project_directory.joinpath("requirements.txt")
             install_requirements_txt(
-                str(self.tmp_folder), requirements_file_path=requirements_file_path
+                str(deps_folder), requirements_file_path=requirements_file_path
             )
         elif poetry_is_used(self.project_directory):
             self.logger.info("using pyproject.toml file in project directory")
-            requirements_file_path = self.tmp_folder.joinpath("requirements.txt")
+            requirements_file_path = deps_folder.joinpath("requirements.txt")
             export_poetry(
                 target_path=requirements_file_path,
                 project_directory=self.project_directory,
                 without_hashes=self.config.without_hashes,
             )
             install_requirements_txt(
-                str(self.tmp_folder),
+                str(deps_folder),
                 requirements_file_path=requirements_file_path,
                 no_deps=True,
             )
         else:
             self.logger.warning("No dependency found, none will be packaged")
 
-        if self.config.deps_only:
-            self.logger.info("deps-only flag present, src files will be ignored")
-        else:
-            self._copy_source_files(
-                source_dir=self.project_directory,
-                target_dir=self.src_folder if self.config.layer else self.tmp_folder,
-            )
+        self._copy_source_files(
+            source_dir=self.project_directory,
+            target_dir=self.src_folder,
+        )
 
-        if self.config.layer:
+        if self.config.deps_layer:
             self.logger.info(
                 "layer flag is present, output will be split into lambda-src.zip and lambda-deps.zip"
             )
-
-            if not self.config.deps_only:
-                self._create_zip_file(
-                    self.src_folder,
-                    str(self.project_directory.joinpath("dist/lambda-src.zip")),
-                )
-
             self._create_zip_file(
-                self.tmp_folder,
+                self.deps_folder.parent,
                 str(self.project_directory.joinpath("dist/lambda-deps.zip")),
             )
-
+            self._create_zip_file(
+                self.src_folder,
+                str(self.project_directory.joinpath("dist/lambda-src.zip")),
+            )
         else:
             self._create_zip_file(
-                self.tmp_folder, str(self.project_directory.joinpath("dist/lambda.zip"))
+                self.src_folder,
+                str(self.project_directory.joinpath("dist/lambda.zip")),
             )
 
     @staticmethod
