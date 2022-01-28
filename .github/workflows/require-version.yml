@@ -13,9 +13,10 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: ${{ github.head_ref }}
+          fetch-depth: 0
       - name: Compare Versions
         run: |
-          diff=$(git diff ${{ github.base_ref }} HEAD -G"version")
+          diff=$(git diff origin/develop HEAD -G"version")
           [[ $diff =~ '\-version = \"([0-9.]+)\"' ]]
           old_ver=$BASH_REMATCH[1]
           [[ $diff =~ '\+version = \"([0-9.]+)\"' ]]
