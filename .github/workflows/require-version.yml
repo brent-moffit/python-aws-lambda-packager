@@ -17,9 +17,9 @@ jobs:
       - name: Compare Versions
         run: |
           diff=$(git diff origin/develop HEAD -G"version")
-          [[ $diff =~ '\-version = \"([0-9.]+)\"' ]]
+          [[ $diff =~ \-version = \"([0-9.]+)\" ]]
           old_ver=$BASH_REMATCH[1]
-          [[ $diff =~ '\+version = \"([0-9.]+)\"' ]]
+          [[ $diff =~ \+version = \"([0-9.]+)\" ]]
           new_ver=$BASH_REMATCH[1]
           if [[ $old_ver == $new_ver ]]
           then
