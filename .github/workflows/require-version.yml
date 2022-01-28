@@ -20,18 +20,18 @@ jobs:
           old_ver_re='\-version = \"([0-9.]+)\"'
           new_ver_re='\+version = \"([0-9.]+)\"'
           [[ $diff =~ $old_ver_re ]]
-          old_ver=$BASH_REMATCH[1]
+          old_ver=${BASH_REMATCH[1]}
           [[ $diff =~ $new_ver_re ]]
-          new_ver=$BASH_REMATCH[1]
-          if [[ $old_ver == $new_ver ]]
+          new_ver=${BASH_REMATCH[1]}
+          if [[ "$old_ver" == "$new_ver" ]]
           then
             echo "Use 'poetry version' to bump version"
-            [[ $old_ver != $new_ver ]]
+            [[ "$old_ver" != "$new_ver" ]]
           fi
           expected=$( printf "$old_ver\n$new_ver" )
-          actual=$( echo $expected | sort -V )
-          if [[ $expected != $actual ]]
+          actual=$( echo "$expected" | sort -V )
+          if [[ "$expected" != "$actual" ]]
           then
             echo "Use 'poetry version' to bump version higher than $old_ver"
-            [[ $expected == $actual ]]
+            [[ "$expected" == "$actual" ]]
           fi
