@@ -32,6 +32,3 @@ jobs:
             echo "Use 'poetry version' to bump version higher than $old_ver"
             [[ $expected == $actual ]]
           fi
-          
-          
-          
