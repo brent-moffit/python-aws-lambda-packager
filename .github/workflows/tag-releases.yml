@@ -9,6 +9,10 @@ jobs:
     name: Tag Release
     runs-on: ubuntu-latest
     steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
       - name: Get Version
         run: |
           toml_version=$( cat pyproject.toml | grep version )
