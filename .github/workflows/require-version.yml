@@ -16,7 +16,7 @@ jobs:
           fetch-depth: 0
       - name: Compare Versions
         run: |
-          diff=$(git diff origin/develop HEAD -G"version")
+          diff=$(git diff origin/${{ github.base_ref }} HEAD -G"version")
           old_ver_re='\-version = \"([0-9.]+)\"'
           new_ver_re='\+version = \"([0-9.]+)\"'
           [[ $diff =~ $old_ver_re ]]
