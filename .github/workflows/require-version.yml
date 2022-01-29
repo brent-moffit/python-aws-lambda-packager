@@ -2,7 +2,7 @@ name: "Require Version Increase"
 
 on:
   pull_request:
-    branches: [ develop ]
+    branches: [ develop, master ]
 
 jobs:
   check_version:
